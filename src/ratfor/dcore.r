@@ -88,29 +88,6 @@ if ( nnull < 1 | nobs <= nnull | nobs > ldq ) {
     return
 }
 
-##########################################################################
-
-## can't do any of this without lambda
-## have to wrap this inside dgold.f
-
-## add Q + mlo*M, call:
-
-# for (j=1;j<=nq;j=j+1) {
-#       call  dqrslm (s, lds, nobs, nnull, qraux, q(1,1,j), ldqr, 0, info,_
-#                     work)
-# }
-#
-# #   tridiagonalization  U^{T} ( F_{2}^{T} Q F_{2} ) U = T
-# call  dsytr (q(n0+1,n0+1), ldq, n, tol, info, work)
-#              if ( info != 0 )  return
-#
-# #   U^{T} z_{2}
-# call  dcopy (n-2, q(n0+2,n0+1), ldq+1, work, 1)
-# call  dqrsl (q(n0+2,n0+1), ldq, n-1, n-2, work, z(n0+2), dum, z(n0+2),_
-#              dum, dum, dum, 01000, info)
-
-##########################################################################
-
 #   set searching range
 if ( job == 0 ) {
     mchpr = 1.d0
