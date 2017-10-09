@@ -56,8 +56,6 @@ call  dqrdc (s, lds, nobs, nnull, qraux, jpvt, work, 1)
 call  dqrsl (s, lds, nobs, nnull, qraux, y, dum, y, work, dum, dum, 01100,_
              info)
 if ( info != 0 )  return
-
-
 return
 end
 

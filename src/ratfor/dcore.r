@@ -104,7 +104,7 @@ upp = limnla(2)
 if ( job <= 0 ) {
     #   compute score and estimate nlaht thru golden-section search
     call dgold (vmu, s, lds, qraux, nobs, nnull, tol, jpvt, M, ldmr, ldmc,
-                q, ldqr, ldqc, n, z, y, low, upp, nlaht,_
+                nq, q, ldqr, ldqc, n, z, y, low, upp, nlaht,_
                 score(1), varht, info, twk, twk2, work, qwork)
     if ( vmu == 'v' )  score(1) = score(1) * dfloat (nobs) / dfloat (n)
     if ( vmu == 'm' )  score(1) = score(1) * dfloat (n) / dfloat (nobs)

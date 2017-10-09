@@ -20,7 +20,7 @@ vcsspreg0 <- function(s,q,y,method="v",varht=1)
   }
   ## Call RKPACK driver DSIDR
   ## vmu, s, lds, nobs, nnull, y, M, ldm, q, ldq, tol, job, limnla,
-  nlaht, score, varht, c, d, qraux, jpvt, wk, qwk, info
+  #nlaht, score, varht, c, d, qraux, jpvt, wk, qwk, info
   z <- .Fortran("dsidr0",
                 as.integer(code),
                 swk=as.double(s), as.integer(nobs),
