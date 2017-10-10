@@ -3,7 +3,7 @@
 
       integer lds, nobs, nnull, ldqr, ldqc, nq, info, ldm
       double precision s(lds,*), qraux(*), q(ldqr,ldqc,*),
-     *work(*), q(ldqr,ldqc,*), M(ldqr,ldqc,*)
+     *work(*), qwk(ldqr,ldqc,*), M(ldqr,ldqc,*)
       double precision dum, nla
       integer j
       info = 0
