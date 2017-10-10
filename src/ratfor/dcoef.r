@@ -3,14 +3,14 @@
 #   dcoef
 #:::::::::::
 
-subroutine  dcoef (s, lds, nobs, nnull, qraux, jpvt, z, q, ldq, nlaht,_
-                   c, d, info, twk)
+subroutine  dcoef (s, lds, nobs, nnull, M, qraux, jpvt, z, q, ldq, nlaht,_
+                   c, d, info, twk, work)
 
 #  Purpose:  To compute the estimated coefficients of the model.
 
 integer           lds, nobs, nnull, jpvt(*), ldq, info
 double precision  s(lds,*), qraux(*), z(*), q(ldq,*), nlaht, c(*), d(*),_
-                  twk(2,*)
+                  twk(2,*), M(ldq,*), work(*)
 
 #  On entry:
 #      s,qraux,jpvt
@@ -58,10 +58,49 @@ if ( nnull < 1 | nnull >= nobs | nobs > lds | nobs > ldq ) {
 n0 = nnull
 n = nobs - nnull
 
+
+## Calculate Qwork = Q + lambda M +++++++++++++++++++++++++++++++++++
+#   F^{T} ( Q + lambda*M ) F
+## on exit: qwork(1,1,j)
+##                    matrix F^{T} qwork F  in LOWER triangle.
+call dgstup ( s, M, lds, nobs, nnull, qraux, q, ldq, nobs,
+              *nq, info, work, qwork, nlaht)
+
+##   tridiagonalization
+##          U(lambda)^{T} [F^{T}( Q + lambda*M )F] U(lambda) = T
+##   on exit:
+##          qwork(n0+1,n0+1) -
+##                   diagonal:  diagonal elements of tridiag. transf.
+##                   upper triangle:  off-diagonal of tridiag. transf.
+##                   lower triangle:  overwritten by Householder factors.
+
+call  dsytr (qwork(n0+1,n0+1), ldqr, n, tol, info, work)
+if ( info != 0 )  return
+
+call  dset (n, 0.d0, twk(2,1), 2)
+call  daxpy (n, 1.d0, qwork, ldq+1, twk(2,1), 2)
+## copy the off diagonal of qwork into twk(1,2)
+call  dcopy (n-1, qwork(1,2), ldq+1, twk(1,2), 2)
+## set work := U^T F_2^T y
+call  dcopy (n, z, 1, work, 1)
+
+call  dpbfa (twk, 2, n, 1, info)
+if ( info != 0 )  return
+
+## set work := U^T F_2^T y
+call  dcopy (n, z, 1, work, 1)
+## calculates work := [F2^T (Q + lambda M ) F2]^{-1}F2^T Y
+call  dpbsl (twk, ldt, n, 1, work)
+## compute F2 [F2^T (Q + lambda M ) F2]^{-1}F2^T Y
+call  dqrsl (s, lds, nobs, nnull, qraux, work, work, dum, work, dum, dum, 10000,_
+             info)
+
+
 #   compute  U ( T + n*lambdahat I )^{-1} z
-call  dset (n, 10.d0 ** nlaht, twk(2,1), 2)
+call  dset (n, 10.d0 ** (nlaht), twk(2,1), 2)
 call  daxpy (n, 1.d0, q(n0+1,n0+1), ldq+1, twk(2,1), 2)
 call  dcopy (n-1, q(n0+1,n0+2), ldq+1, twk(1,2), 2)
+
 call  dpbfa (twk, 2, n, 1, info)
 if ( info != 0 ) {
     info = -2
@@ -89,4 +128,3 @@ return
 end
 
 #...............................................................................
-

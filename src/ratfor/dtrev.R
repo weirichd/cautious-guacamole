@@ -72,7 +72,7 @@ if ( info != 0 )  return
 call  dcopy (n, z, 1, work, 1)
 ## calculates work := [F2^T (Q + lambda M ) F2]^{-1}F2^T Y
 call  dpbsl (t, ldt, n, 1, work)
-## compute F2 [F2^T (Q + lambda M ) F2]^{-1}F2^T Y    
+## compute F2 [F2^T (Q + lambda M ) F2]^{-1}F2^T Y
 call  dqrsl (s, lds, nobs, nnull, qraux, work, work, dum, work, dum, dum, 10000,_
              info)
 
