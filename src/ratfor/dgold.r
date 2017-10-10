@@ -3,20 +3,19 @@
 #   dgold
 #:::::::::::
 
-subroutine  dgold (vmu, s, lds, qraux, nobs, nnull, tol, jpvt, M,_
-                   ldmr, ldmc, nq, q, ldqr, ldqc, z, y, low,_
-                   upp, nlaht, score, varht, info, twk, twk2,_
-                   work, qwork)
+subroutine dgold (vmu, s, lds, qraux, nobs, nnull, tol, jpvt, M,
+       *ldq, nq, q, z, y, low, upp, nlaht, score,
+       *varht,info, twk, twk2, work, qwork)
 
 #  Purpose:  To evaluate GCV/GML function based on tridiagonal form and to
 #      search minimum on an interval by golden section search.
 
 character*1       vmu
-integer           ldmr, ldmc, ldqr, ldqc, n, info, jpvt(*), lds,_
+integer           ldq, n, info, jpvt(*), lds,_
                   nnull, nobs, nq, n
-double precision  q(ldqr,ldqc,*), M(ldmr,ldmc,*), tol, z(*), y(*), low,_
+double precision  q(ldq,*), M(ldq,*), tol, z(*), y(*), low,_
                   upp, nlaht, score, varht, twk(2,*), twk2(*), work(*),_
-                  qwork(ldmr,ldmc,*), qraux(*)
+                  qwork(ldq,*), qraux(*)
 
 #  On entry:
 #      vmu        'v':  GCV criterion.
@@ -93,21 +92,8 @@ mlo = upp - ratio * (upp - low)
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ## Calculate Qwork = Q + lambda M +++++++++++++++++++++++++++++++++++
-for (j=1;j<=nq;j=j+1) {
-      ## set qwork = M
-      dcopy(ldmr*ldmc,M,1,qwork,1)
-      # set qwork = mlo*qwork = mlo*M
-      dscal(ldmr*ldmc,mlo,qwork,1)
-      # qwork = 1*q + qwork
-      daxpy(ldq*ldq,1,q(1,1,j),1,qwork,1)
-
-      #   F^{T} ( Q + lambda*M ) F
-      ## on exit: qwork(1,1,j)
-      ##                    matrix F^{T} qwork F  in LOWER triangle.
-      dqrslm (s, lds, nobs, nnull, qraux, qwork(1,1,j), ldmr, 0,_
-              info, work)
-}
-
+call dgstup ( s, M, lds, nobs, nnull, qraux, q, ldq, nobs,
+              *nq, info, work, qwork, mlo)
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -126,17 +112,17 @@ if ( info != 0 )  return
 
 ##   z(lambda) : = U(lambda)^{T} z_{2}
 ## copy lower triangle of U T U^T into work
-call  dcopy (n-2, q(n0+2,n0+1), ldq+1, work, 1)
+call  dcopy (n-2, qwork(n0+2,n0+1), ldq+1, work, 1)
 ## z(n0+2) := U^T F_2^T y(n0+2)
 call  dqrsl (qwork(n0+2,n0+1), ldq, n-1, n-2,  work, y(n0+2), dum, z(n0+2),dum, dum, dum, 01000, info)
 ## copy the main diagonal of Qwork into twk(2,1)
 call  dset (n, 0.d0, twk(2,1), 2)
-call  daxpy (n, 1.d0, q, ldq+1, twk(2,1), 2)
+call  daxpy (n, 1.d0, qwork, ldq+1, twk(2,1), 2)
 ## copy the off diagonal of qwork into twk(1,2)
 call  dcopy (n-1, qwork(1,2), ldq+1, twk(1,2), 2)
 
 twk(1,1) = 10.d0**mlo
-call  dtrev (vmu, twk, 2, n, z, tmpl, varht, info, work, twk2)
+call  dtrev (vmu, twk, 2, M, ldq, n, z, tmpl, varht, info, work, twk2)
 if ( info != 0 ) {
     info = -2
     return
@@ -146,20 +132,8 @@ mup = low + ratio * (upp - low)
 
 ## Calculate Qwork = Q + lambda M +++++++++++++++++++++++++++++++++++
 
-for (j=1;j<=nq;j=j+1) {
-    ## set qwork = M
-    dcopy(ldmr*ldmc,M,1,qwork,1)
-    # set qwork = mlo*qwork = mlo*M
-    dscal(ldmr*ldmc,mlo,qwork,1)
-    # qwork = 1*q + qwork
-    daxpy(ldq*ldq,1,q(1,1,j),1,qwork,1)
-
-    #   F^{T} ( Q + lambda*M ) F
-    ## on exit: qwork(1,1,j)
-    ##                    matrix F^{T} qwork F  in LOWER triangle.
-    dqrslm (s, lds, nobs, nnull, qraux, qwork(1,1,j), ldmr, 0,_
-            info, work)
-}
+call dgstup ( s, M, lds, nobs, nnull, qraux, q, ldq, nobs,
+              *nq, info, work, qwork, mup)
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -178,12 +152,12 @@ if ( info != 0 )  return
 
 ##   z(lambda) : = U(lambda)^{T} z_{2}
 ## copy lower triangle of U T U^T into work
-call  dcopy (n-2, q(n0+2,n0+1), ldq+1, work, 1)
+call  dcopy (n-2, qwork(n0+2,n0+1), ldq+1, work, 1)
 ## z(n0+2) := U^T F_2^T y(n0+2)
 call  dqrsl (qwork(n0+2,n0+1), ldq, n-1, n-2,  work, y(n0+2), dum, z(n0+2),dum, dum, dum, 01000, info)
 ## copy the main diagonal of Qwork into twk(2,1)
 call  dset (n, 0.d0, twk(2,1), 2)
-call  daxpy (n, 1.d0, q, ldq+1, twk(2,1), 2)
+call  daxpy (n, 1.d0, qwork, ldq+1, twk(2,1), 2)
 ## copy the off diagonal of qwork into twk(1,2)
 call  dcopy (n-1, qwork(1,2), ldq+1, twk(1,2), 2)
 
@@ -206,19 +180,8 @@ repeat {
 
         ## Calculate Qwork = Q + lambda M +++++++++++++++++++++++++++++++++++
 
-        for (j=1;j<=nq;j=j+1) {
-            ## set qwork = M
-            dcopy(ldmr*ldmc,M,1,qwork,1)
-            # set qwork = mlo*qwork = mlo*M
-            dscal(ldmr*ldmc,mlo,qwork,1)
-            # qwork = 1*q + qwork
-            daxpy(ldq*ldq,1,q(1,1,j),1,qwork,1)
-
-            #   F^{T} ( Q + lambda*M ) F
-            ## on exit: qwork(1,1,j)
-            ##                    matrix F^{T} qwork F  in LOWER triangle.
-            dqrslm (s, lds, nobs, nnull, qraux, qwork(1,1,j), ldmr, 0,_
-                    info, work)
+        call dgstup ( s, M, lds, nobs, nnull, qraux, q, ldq, nobs,
+                      *nq, info, work, qwork, mlo)
         }
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -238,19 +201,20 @@ repeat {
 
         ##   z(lambda) : = U(lambda)^{T} z_{2}
         ## copy lower triangle of U T U^T into work
-        call  dcopy (n-2, q(n0+2,n0+1), ldq+1, work, 1)
+        call  dcopy (n-2, qwork(n0+2,n0+1), ldq+1, work, 1)
         ## z(n0+2) := U^T F_2^T y(n0+2)
         ## Comment(DAVID): Assume that we don't need to fuck around with this. If we are wrong
         ##                 it will be obvious and we'll figure it out.
         call  dqrsl (qwork(n0+2,n0+1), ldq, n-1, n-2,  work, y(n0+2), dum, z(n0+2),dum, dum, dum, 01000, info)
         ## copy the main diagonal of Qwork into twk(2,1)
         call  dset (n, 0.d0, twk(2,1), 2)
-        call  daxpy (n, 1.d0, q, ldq+1, twk(2,1), 2)
+        call  daxpy (n, 1.d0, qwork, ldq+1, twk(2,1), 2)
         ## copy the off diagonal of qwork into twk(1,2)
         call  dcopy (n-1, qwork(1,2), ldq+1, twk(1,2), 2)
 
         twk(1,1) = 10.d0**mlo
-        call  dtrev (vmu, twk, 2, n, z, tmpl, varht, info, work, twk2)
+        #(vmu, t, ldt, M, ldm, n, z, score, varht, info, work, twk)
+        call  dtrev (vmu, twk, 2, M, ldq, n, z, tmpl, varht, info, work, twk2)
         if ( info != 0 ) {
             info = -2
             return
@@ -264,21 +228,9 @@ repeat {
 
         ## Calculate Qwork = Q + lambda M +++++++++++++++++++++++++++++++++++
 
-        for (j=1;j<=nq;j=j+1) {
-            ## set qwork = M
-            dcopy(ldmr*ldmc,M,1,qwork,1)
-            # set qwork = mlo*qwork = mlo*M
-            dscal(ldmr*ldmc,mlo,qwork,1)
-            # qwork = 1*q + qwork
-            daxpy(ldq*ldq,1,q(1,1,j),1,qwork,1)
-
-            #   F^{T} ( Q + lambda*M ) F
-            ## on exit: qwork(1,1,j)
-            ##                    matrix F^{T} qwork F  in LOWER triangle.
-            dqrslm (s, lds, nobs, nnull, qraux, qwork(1,1,j), ldmr, 0,_
-                    info, work)
-        }
-        ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        call dgstup ( s, M, lds, nobs, nnull, qraux, q, ldq, nobs,
+                      *nq, info, work, qwork, mup)
+        ##+++++++++++++++++++++++++++++++++++++++++++++
         ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         ##   tridiagonalization
@@ -296,12 +248,12 @@ repeat {
 
         ##   z(lambda) : = U(lambda)^{T} z_{2}
         ## copy lower triangle of U T U^T into work
-        call  dcopy (n-2, q(n0+2,n0+1), ldq+1, work, 1)
+        call  dcopy (n-2, qwork(n0+2,n0+1), ldq+1, work, 1)
         ## z(n0+2) := U^T F_2^T y(n0+2)
         call  dqrsl (qwork(n0+2,n0+1), ldq, n-1, n-2,  work, y(n0+2), dum, z(n0+2),dum, dum, dum, 01000, info)
         ## copy the main diagonal of Qwork into twk(2,1)
         call  dset (n, 0.d0, twk(2,1), 2)
-        call  daxpy (n, 1.d0, q, ldq+1, twk(2,1), 2)
+        call  daxpy (n, 1.d0, qwork, ldq+1, twk(2,1), 2)
         ## copy the off diagonal of qwork into twk(1,2)
         call  dcopy (n-1, qwork(1,2), ldq+1, twk(1,2), 2)
 
@@ -318,20 +270,8 @@ repeat {
 nlaht = ( mup + mlo ) / 2.d0
 ## Calculate Qwork = Q + lambda M +++++++++++++++++++++++++++++++++++
 
-for (j=1;j<=nq;j=j+1) {
-    ## set qwork = M
-    dcopy(ldmr*ldmc,M,1,qwork,1)
-    # set qwork = mlo*qwork = mlo*M
-    dscal(ldmr*ldmc,nlaht,qwork,1)
-    # qwork = 1*q + qwork
-    daxpy(ldq*ldq,1,q(1,1,j),1,qwork,1)
-
-    #   F^{T} ( Q + lambda*M ) F
-    ## on exit: qwork(1,1,j)
-    ##                    matrix F^{T} qwork F  in LOWER triangle.
-    dqrslm (s, lds, nobs, nnull, qraux, qwork(1,1,j), ldmr, 0,_
-            info, work)
-}
+call dgstup ( s, M, lds, nobs, nnull, qraux, q, ldq, nobs,
+              *nq, info, work, qwork, nlaht)
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -350,22 +290,18 @@ if ( info != 0 )  return
 
 ##   z(lambda) : = U(lambda)^{T} z_{2}
 ## copy lower triangle of U T U^T into work
-call  dcopy (n-2, q(n0+2,n0+1), ldq+1, work, 1)
+call  dcopy (n-2, qwork(n0+2,n0+1), ldq+1, work, 1)
 ## z(n0+2) := U^T F_2^T y(n0+2)
 call  dqrsl (qwork(n0+2,n0+1), ldq, n-1, n-2,  work, y(n0+2), dum, z(n0+2),dum, dum, dum, 01000, info)
 ## copy the main diagonal of Qwork into twk(2,1)
 call  dset (n, 0.d0, twk(2,1), 2)
-call  daxpy (n, 1.d0, q, ldq+1, twk(2,1), 2)
+call  daxpy (n, 1.d0, qwork, ldq+1, twk(2,1), 2)
 ## copy the off diagonal of qwork into twk(1,2)
 call  dcopy (n-1, qwork(1,2), ldq+1, twk(1,2), 2)
 
 twk(1,1) = 10.d0**nlaht
 
-
-## TODO: Need to premultiply twk by
-
-
-call  dtrev (vmu, twk, 2, n, z, score, varht, info, work, twk2)
+call  dtrev (vmu, twk, 2, M, ldq, n, z, score, varht, info, work, twk2)
 if ( info != 0 ) {
     info = -2
     return
