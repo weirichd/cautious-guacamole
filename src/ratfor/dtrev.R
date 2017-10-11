@@ -3,7 +3,8 @@
 #   dtrev
 #:::::::::::
 
-subroutine  dtrev (vmu, t, ldt, M, ldm, n, z, score, varht, info, work, twk)
+subroutine  dtrev (vmu, t, ldt, q, ldq, M, n, z, score, varht, info,
+                   work, twk)
 
 #  Acronym:  Double-precision TRidiagonal EValuation.
 
@@ -14,8 +15,8 @@ subroutine  dtrev (vmu, t, ldt, M, ldm, n, z, score, varht, info, work, twk)
 #               2. Dongarra et al. (1979) LINPACK User's Guide. (Chap. 4)
 
 character*1       vmu
-integer           n, info, ldt, ldm
-double precision  t(ldt,*), M(ldm,*), z(*), score, varht, work(*),
+integer           n, info, ldt, ldq
+double precision  t(ldt,*), q(ldq,*), M(ldq,*), z(*), score, varht, work(*),
                   twk(*)
 
 #  On entry:
@@ -65,13 +66,29 @@ call  dscal (n-1, alph, t(1,2), ldt)
 
 #   decomposition
 ## of T(lambda)
+## T(lambda) = U(lambda)^{T} [F^{T}( Q + lambda*M )F] U(lambda)
 call  dpbfa (t, ldt, n, 1, info)
 if ( info != 0 )  return
 
 ## set work := U^T F_2^T y
 call  dcopy (n, z, 1, work, 1)
-## calculates work := [F2^T (Q + lambda M ) F2]^{-1}F2^T Y
+
+## solves T(lambda) work = z
+## T^{-1} = U^T [F^{T}( Q + lambda*M )F]^{-1} U
+## sets work := U^T[T(lambda)]^{-1} U U^T F2^T Y
+##            = U^T[T(lambda)]^{-1} F2^T Y
+
 call  dpbsl (t, ldt, n, 1, work)
+
+call  dcopy (n-2, q(n0+2,n0+1), ldq+1, work, 1)
+## z(n0+2) := U^T F_2^T y(n0+2)
+call  dqrsl (q(n0+2,n0+1), ldq, n-1, n-2, work, y(n0+2), dum,
+*z(n0+2),dum, dum, dum, 01000, info)
+
+##
+call dcopy (n-2, q(n0+2,n0+1), ldq+1, twk2, 1)
+
+call  dqrsl (q(n0+2,n0+1), ldq, n-1, n-2,  work, y(n0+2), dum, z(n0+2),dum, dum, dum, 01000, info)
 ## compute F2 [F2^T (Q + lambda M ) F2]^{-1}F2^T Y
 call  dqrsl (s, lds, nobs, nnull, qraux, work, work, dum, work, dum, dum, 10000,_
              info)
