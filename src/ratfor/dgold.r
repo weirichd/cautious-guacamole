@@ -92,6 +92,7 @@ mlo = upp - ratio * (upp - low)
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ## Calculate Qwork = Q + lambda M +++++++++++++++++++++++++++++++++++
+## Decompose Qwork := F2^t Qwork F2
 call dgstup ( s, M, lds, nobs, nnull, qraux, q, ldq, nobs,
               *nq, info, work, qwork, mlo)
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

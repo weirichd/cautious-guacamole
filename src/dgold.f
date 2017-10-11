@@ -43,8 +43,9 @@ C Begin the code
       call  daxpy (ncol, 1.d0, q, ldq+1, twk(2,1), 2)
       call  dcopy (ncol-1, qwork(1,2), ldq+1, twk(1,2), 2)
       twk(1,1) = 10.d0**mlo
-      call  dtrev (vmu, twk, 2, M, ldq, ncol, z, tmpl, varht,
-     *info,work, twk2)
+
+      call  dtrev (vmu, twk, 2, qwork, ldq, M, ncol, z, tmpl,
+     *varht, info,work, twk2)
       if( info .ne. 0 )then
       info = -2
       return
@@ -64,8 +65,8 @@ C Begin the code
       call  dcopy (ncol-1, qwork(1,2), ldq+1, twk(1,2), 2)
 
       twk(1,1) = 10.d0**mup
-      call  dtrev (vmu, twk, 2, M, ldq, ncol, z, tmpu, varht, info,
-     *work,twk2)
+      call  dtrev (vmu, twk, 2, qwork, ldq, M, ncol, z, tmpu,
+     *varht, info, work,twk2)
 
       if( info .ne. 0 )then
       info = -2
@@ -92,8 +93,9 @@ C Begin the code
       call  daxpy (ncol, 1.d0, q, ldq+1, twk(2,1), 2)
       call  dcopy (ncol-1, qwork(1,2), ldq+1, twk(1,2), 2)
       twk(1,1) = 10.d0**mlo
-      call dtrev (vmu, twk, 2, M, ldq, ncol, z, tmpl, varht, info,
-     *work,twk2)
+
+      call dtrev (vmu, twk, 2, qwork, ldq, M, ncol, z, tmpl,
+     *varht, info, work,twk2)
       if( info .ne. 0 )then
       info = -2
       return
@@ -115,8 +117,9 @@ C Begin the code
       call  daxpy (ncol, 1.d0, q, ldq+1, twk(2,1), 2)
       call  dcopy (ncol-1, qwork(1,2), ldq+1, twk(1,2), 2)
       twk(1,1) = 10.d0**mup
-      call dtrev (vmu, twk, 2, M, ldq, ncol, z, tmpu, varht, info,
-     *work,twk2)
+
+      call dtrev (vmu, twk, 2, qwork, ldq, M, ncol, z, tmpu,
+     *varht, info, work, twk2)
       if( info .ne. 0 )then
       info = -2
       return
@@ -137,8 +140,9 @@ C Begin the code
       call  daxpy (ncol, 1.d0, q, ldq+1, twk(2,1), 2)
       call  dcopy (ncol-1, qwork(1,2), ldq+1, twk(1,2), 2)
       twk(1,1) = 10.d0**mup
-      call dtrev (vmu, twk, 2, M, ldq, ncol, z, score, varht, info,
-     *work,twk2)
+
+      call dtrev (vmu, twk, 2, qwork, ldq, M, ncol, z, score,
+     *varht, info, work, twk2)
 
       return
       end
