@@ -4,7 +4,7 @@ C Output from Public domain Ratfor, version 1.0
 
       integer lds, nobs, nnull, jpvt(*), ldq, info
       double precision s(lds,*), qraux(*), y(*), q(ldq,*), nlaht, c(*),
-     *d(*), twk(*), M(ldq,*), work(*), qwk(ldq,*)
+     *d(*), twk(2,*), M(ldq,*), work(*), qwk(ldq,*)
       double precision dum, ddot
       integer n, n0
       info = 0

@@ -55,7 +55,7 @@
       endif
       else
       call deval (vmu, q(n0+1,n0+1), ldq, n, z(n0+1), job, low, upp, nla
-     *ht, score, varht, info, twk, work)
+     *ht, score, varht, info, work, twk, qwork)
       dum = dfloat (nobs) / dfloat (n)
       j=1
 23018 if(.not.(j.le.job+1))goto 23020

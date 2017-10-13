@@ -1,12 +1,14 @@
       subroutine deval (vmu, s, lds, nint, qraux, nobs, nnull, tol,
      *jpvt, M, ldq, nq, q, z, y, low, upp, nlaht, score, varht, info,
-     *work, twk, twk2, qwork)
+     *work, twk, qwork)
 
-      ccharacter vmu
-      integer ldq, n, info, jpvt(*), lds, nnull, nobs, nq, n, nint
+      character vmu
+      integer ldq, n, info, jpvt(*), lds, nnull, nobs, nq, nint
+
       double precision  q(ldq,*), M(ldq,*), tol, z(*), y(*), low,
-     *upp, nlaht, score, varht, twk(2,*), twk2(*), work(*),
+     *upp, nlaht, score, varht, twk(2,*), work(*),
      *qwork(ldq,*), qraux(*)
+
       double precision tmp, minscr, mlo, varhtwk
       integer j
       info = 0
@@ -28,9 +30,9 @@
 23006 if(.not.(j.le.nint+1))goto 23008
       tmp = low + dfloat (j-1) * ( upp - low ) / dfloat (nint)
       call dgstup ( s, M, lds, nobs, nnull, qraux, q, ldq, nobs,
-                    *nq, info, work, qwork, tmp)
+     *nq, info, work, qwork, tmp)
       call  dsytr (qwork(n0+1,n0+1), ldq, n, tol, info, work)
-      if ( info != 0 ) then
+      if( info.ne.0 )then
       return
       endif
       call  dcopy (n-2, qwork(n0+2,n0+1), ldq+1, work, 1)

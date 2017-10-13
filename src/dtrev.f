@@ -39,7 +39,6 @@ C Output from Public domain Ratfor, version 1.0
       call dgemm ( "n", "n", ldq, 1, ldq, 1, M, ldq, work,
      *ldt, 0, twk, ldt)
 
-
       if( vmu .eq. 'v' )then
       tmp = 1.d0 / t(2,n) / t(2,n)
       deno = tmp
