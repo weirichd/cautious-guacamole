@@ -1,10 +1,10 @@
 C Output from Public domain Ratfor, version 1.0
-      subroutine dtrev (vmu, t, ldt, q, ldq, M, n, z, score, varht,
+      subroutine dtrev (vmu, t, ldt, M, ldq, n, z, score, varht,
      *info, work, twk)
 
       character vmu
       integer n, info, ldt, ldq
-      double precision t(ldt,*), q(ldq,*), z(*), score, varht,
+      double precision t(ldt,*), z(*), score, varht,
      *work(*), twk(*), M(ldq,*)
       double precision nume, deno, tmp, alph, la, dasum, ddot
 
@@ -25,20 +25,20 @@ C Output from Public domain Ratfor, version 1.0
       return
       endif
 
-      call dcopy (n, z, 1, work, 1)
-      call dpbsl (t, ldt, n, 1, work)
-      C need to premultiply by U
-      call  dqrsl (q(n0+2,n0+1), ldq, n-1, n-2, twk, z(n0+2),
-     *z(n0+2), dum,dum, dum, dum, 10000, info)
-      call  dqrsl (s, lds, nobs, nnull, qraux, work, work, dum, work,
-     *dum, dum, 10000, info)
+      call  dpbsl (t, ldt, n, 1, z(n0+1))
+      call  dcopy (n-2, qwork(n0+2,n0+1), ldq+1, work, 1)
+      call  dqrsl (q(n0+2,n0+1), ldq, n-1, n-2, work, z(n0+2),
+     *z(n0+2), dum, dum, dum, dum, 10000, info)
+
+      call  dqrsl (s, lds, nobs, nnull, qraux, z(n0+2), z(n0+2),
+     *dum, dum, dum, dum, 10000, info)
       if( info .ne. 0 )then
       return
       endif
 
-      call dcopy (n, work, 1, twk, 1)
-      call dgemm ( "n", "n", ldq, 1, ldq, 1, M, ldq, work,
-     *ldt, 0, twk, ldt)
+      call dcopy (n, z, 1, twk, 1)
+      call dgemm ( "n", "n", ldq, 1, ldq, 1, M, ldq, work, ldt,
+     *0, twk, ldq)
 
       if( vmu .eq. 'v' )then
       tmp = 1.d0 / t(2,n) / t(2,n)
