@@ -3,7 +3,7 @@
 #   dtrev
 #:::::::::::
 
-subroutine  dtrev (vmu, t, ldt, q, ldq, M, n, z, score, varht, info,
+subroutine  dtrev (vmu, t, ldt, M, ldq, n, z, score, varht, info,
                    work, twk)
 
 #  Acronym:  Double-precision TRidiagonal EValuation.
@@ -16,7 +16,7 @@ subroutine  dtrev (vmu, t, ldt, q, ldq, M, n, z, score, varht, info,
 
 character*1       vmu
 integer           n, info, ldt, ldq
-double precision  t(ldt,*), q(ldq,*), M(ldq,*), z(*), score, varht, work(*),
+double precision  t(ldt,*), M(ldq,*), z(*), score, varht, work(*),
                   twk(*)
 
 #  On entry:
@@ -73,23 +73,13 @@ if ( info != 0 )  return
 ## set work := U^T F_2^T y
 call  dcopy (n, z, 1, work, 1)
 
-## solves T(lambda) work = z
+## solve T(lambda) x = z
 ## T^{-1} = U^T [F^{T}( Q + lambda*M )F]^{-1} U
-## sets work := U^T[T(lambda)]^{-1} U U^T F2^T Y
-##            = U^T[T(lambda)]^{-1} F2^T Y
-
+## ## sets work :=  U^T[T(lambda)]^{-1} U U^T F2^T Y
+##              := [F^{T}( Q + lambda*M )F]^{-1} F2^T Y
 call  dpbsl (t, ldt, n, 1, work)
 
-call  dcopy (n-2, q(n0+2,n0+1), ldq+1, work, 1)
-## z(n0+2) := U^T F_2^T y(n0+2)
-call  dqrsl (q(n0+2,n0+1), ldq, n-1, n-2, work, y(n0+2), dum,
-*z(n0+2),dum, dum, dum, 01000, info)
-
-##
-call dcopy (n-2, q(n0+2,n0+1), ldq+1, twk2, 1)
-
-call  dqrsl (q(n0+2,n0+1), ldq, n-1, n-2,  work, y(n0+2), dum, z(n0+2),dum, dum, dum, 01000, info)
-## compute F2 [F2^T (Q + lambda M ) F2]^{-1}F2^T Y
+## compute work :=F2 [F2^T (Q + lambda M ) F2]^{-1}F2^T Y
 call  dqrsl (s, lds, nobs, nnull, qraux, work, work, dum, work, dum, dum, 10000,_
              info)
 
@@ -101,7 +91,6 @@ call  dqrsl (s, lds, nobs, nnull, qraux, work, work, dum, work, dum, dum, 10000,
 call dcopy (n, work, 1, twk, 1)
 call dgemm ( "n", "n", ldm, 1, ldm, 1, M, ldm,
                    work, ldt, 0, twk, ldt)
-
 
 #   GCV computation
 if ( vmu == 'v' ) {

@@ -3,10 +3,10 @@
 #   dcore
 #:::::::::::
 
-subroutine  dcore (vmu, s, lds, M, ldmr, ldmc, nobs, nnull, qraux,_
-                   jpvt, q, ldqr, ldqc, tol, y, z, 
-                   job, limnla, nlaht, score, varht, info, twk,_
-                   twk2, work, qwork)
+subroutine  dcore (vmu, s, lds, M, ldqr, ldqc, nobs, nnull, qraux,_
+                   jpvt, q, ldqr, ldqc, tol, y, z,
+                   job, limnla, nlaht, score, varht, info, work, twk,_
+                   twk2, qwork)
 
 #  Purpose:  To evaluate the GCV/GML score function at various trial values
 #      of n*lambda using the tridiagonalization GCV/GML algorithm.  Perform
@@ -14,11 +14,11 @@ subroutine  dcore (vmu, s, lds, M, ldmr, ldmc, nobs, nnull, qraux,_
 #      n*lambda.
 
 character*1       vmu
-integer           ldqr, ldqc, ldmr, ldmc, lds, nobs, nnull, job, info,_
+integer           ldqr, ldqc, ldqr, ldqc, lds, nobs, nnull, job, info,_
                   jpvt(*)
-double precision  s(lds,*), q(ldqr,ldqc,*), M(ldmr,ldmc,*), tol, y(*), z(*), ,_
+double precision  s(lds,*), q(ldqr,ldqc,*), M(ldqr,ldqc,*), tol, y(*), z(*), ,_
                   limnla(2), nlaht, score(*), varht, twk(2,*), twk2(*), work(*),_
-                  qwork(ldmr,ldmc,*), qraux(*)
+                  qwork(ldqr,ldqc,*), qraux(*)
 
 
 #  On entry:
@@ -98,14 +98,13 @@ if ( job == 0 ) {
     limnla(2) = dlog10 (limnla(2))
     limnla(1) = dlog10 (limnla(1))
 }
-
 low = limnla(1)
 upp = limnla(2)
 if ( job <= 0 ) {
     #   compute score and estimate nlaht thru golden-section search
-    call dgold (vmu, s, lds, qraux, nobs, nnull, tol, jpvt, M, ldmr, ldmc,
-                1, q, ldqr, ldqc, n, z, y, low, upp, nlaht,_
-                score(1), varht, info, twk, twk2, work, qwork)
+    call dgold (vmu, s, lds, qraux, nobs, nnull, tol, jpvt, M, ldq,
+                1, q, z, y, low, upp, nlaht, score(1),
+              *varht, info, work, twk, twk2, qwork)
     if ( vmu == 'v' )  score(1) = score(1) * dfloat (nobs) / dfloat (n)
     if ( vmu == 'm' )  score(1) = score(1) * dfloat (n) / dfloat (nobs)
     if ( vmu == 'u' )  score(1) = score(1) * dfloat (n) / dfloat (nobs) + 2.d0 * varht
@@ -126,4 +125,3 @@ return
 end
 
 #...............................................................................
-

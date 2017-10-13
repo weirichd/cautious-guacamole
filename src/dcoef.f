@@ -1,9 +1,10 @@
 C Output from Public domain Ratfor, version 1.0
       subroutine dcoef (s, lds, nobs, nnull, M, qraux, jpvt, y, z, q, ldq,
-     *nlaht, c, d, info, twk)
+     *nlaht, c, d, info, work, qwk, twk)
+
       integer lds, nobs, nnull, jpvt(*), ldq, info
       double precision s(lds,*), qraux(*), y(*), q(ldq,*), nlaht, c(*),
-     *d(*), twk(2,*), M(ldq,*)
+     *d(*), twk(*), M(ldq,*), work(*), qwk(ldq,*)
       double precision dum, ddot
       integer n, n0
       info = 0
@@ -49,11 +50,6 @@ C Output from Public domain Ratfor, version 1.0
       call  dcopy (n, z(n0+1), 1, c(n0+1), 1)
       call  dqrsl (s, lds, nobs, nnull, qraux, c, c, dum, dum, dum,
      *dum, 10000,info)
-
-      call  dcopy (n, z(n0+1), 1, work, 1)
-      call  dpbsl (t, ldt, n, 1, work)
-      call  dqrsl (s, lds, nobs, nnull, qraux, z, z, dum, work, dum,
-     *dum, 10000, info)
 
       j=1
 23004 if(.not.(j.le.n0))goto 23006

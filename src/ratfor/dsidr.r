@@ -3,8 +3,8 @@
 #   dsidr
 #::::::::::::
 
-subroutine  dsidr (vmu, s, lds, nobs, nnull, y, z, M, ldm, q, ldq, tol, job, limnla,
-                   nlaht, score, varht, c, d, qraux, jpvt, wk, twk2, qwk, info)                                          # error message
+subroutine  dsidr (vmu, s, lds, nobs, nnull, y, z, M, q, ldq, tol, job, limnla,
+                   nlaht, score, varht, c, d, qraux, jpvt, wk, twk, twk2, qwk, info)
 
 #  Acronym:  Double precision SIngle smoothing parameter DRiver.
 
@@ -73,8 +73,9 @@ subroutine  dsidr (vmu, s, lds, nobs, nnull, y, z, M, ldm, q, ldq, tol, job, lim
 
 character*1       vmu
 integer           lds, nobs, nnull, ldq, job, jpvt(*), info
-double precision  s(lds,*), y(*), z(*), M(ldm,*), q(ldq,*), tol, limnla(2), nlaht, score(*),_
-                  varht, c(*), d(*), qraux(*), wk(*), qwk(ldq,*), twk2(*)
+double precision  s(lds,*), y(*), z(*), M(ldq,*), q(ldq,*), tol, limnla(2), nlaht, score(*),_
+                  varht, c(*), d(*), qraux(*), wk(*), qwk(ldq,*), twk(*),
+                  twk2(*)
 
 
 #  On entry:
@@ -150,25 +151,18 @@ if ( vmu != 'v' & vmu != 'm' & vmu != 'u' ) {
 
 #   main process
 
-
-            #s, lds, nobs, nnull, qraux, jpvt, y, info, work
 call  dstup (s, lds, nobs, nnull, qraux, jpvt, y, info, wk)
 if ( info != 0 )  return
 
-# vmu, s, lds, M, ldmr, ldmc, nobs, nnull, qraux,_
-#       jpvt, q, ldqr, ldqc, M, ldmr, ldmc, tol, y, z,
-#       job, limnla, nlaht, score, varht, info, twk,_
-#       work, qwk
-
 ## copy y = F^t y to z
 call  dcopy(nobs, y, 1, z, 1)
-call  dcore(vmu, s, lds, M, ldmr, ldmc, nobs, nnull, qraux, jpvt,_
-             q, ldq, nobs, tol, y, z, job, limnla, nlaht, score,_
-             varht, info, wk, twk2, wk(2*nobs+1), qwk)
+call  dcore(vmu, s, lds, M, nobs, nnull, qraux, jpvt,_
+             q, ldq, tol, y, z, job, limnla, nlaht, score,_
+             varht, info, wk, twk, twk2, qwk)
 if ( info != 0 )  return
 
 call  dcoef (s, lds, nobs, nnull, qraux, jpvt, y, q, ldq, nlaht, c, d,_
-             info, wk)
+             info, wk, qwk, twk)
 
 return
 end

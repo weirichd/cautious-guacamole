@@ -4,13 +4,13 @@
 #:::::::::::
 
 subroutine  dcoef (s, lds, nobs, nnull, M, qraux, jpvt, z, q, ldq, nlaht,_
-                   c, d, info, twk, work)
+                   c, d, info, work, qwk, twk)
 
 #  Purpose:  To compute the estimated coefficients of the model.
 
 integer           lds, nobs, nnull, jpvt(*), ldq, info
 double precision  s(lds,*), qraux(*), z(*), q(ldq,*), nlaht, c(*), d(*),_
-                  twk(2,*), M(ldq,*), work(*)
+                  twk(*), M(ldq,*), work(*), qwk(ldq,*)
 
 #  On entry:
 #      s,qraux,jpvt
@@ -59,31 +59,34 @@ n0 = nnull
 n = nobs - nnull
 
 
-## Calculate Qwork = Q + lambda M +++++++++++++++++++++++++++++++++++
+## Calculate qwk = Q + lambda M +++++++++++++++++++++++++++++++++++
 #   F^{T} ( Q + lambda*M ) F
-## on exit: qwork(1,1,j)
-##                    matrix F^{T} qwork F  in LOWER triangle.
+## on exit: qwk(1,1,j)
+##                    matrix F^{T} qwk F  in LOWER triangle.
 call dgstup ( s, M, lds, nobs, nnull, qraux, q, ldq, nobs,
-              *nq, info, work, qwork, nlaht)
+              *nq, info, work, qwk, nlaht)
 
 ##   tridiagonalization
 ##          U(lambda)^{T} [F^{T}( Q + lambda*M )F] U(lambda) = T
 ##   on exit:
-##          qwork(n0+1,n0+1) -
+##          qwk(n0+1,n0+1) -
 ##                   diagonal:  diagonal elements of tridiag. transf.
 ##                   upper triangle:  off-diagonal of tridiag. transf.
 ##                   lower triangle:  overwritten by Householder factors.
 
-call  dsytr (qwork(n0+1,n0+1), ldqr, n, tol, info, work)
+call  dsytr (qwk(n0+1,n0+1), ldqr, n, tol, info, work)
 if ( info != 0 )  return
 
 call  dset (n, 0.d0, twk(2,1), 2)
-call  daxpy (n, 1.d0, qwork, ldq+1, twk(2,1), 2)
-## copy the off diagonal of qwork into twk(1,2)
-call  dcopy (n-1, qwork(1,2), ldq+1, twk(1,2), 2)
+call  daxpy (n, 1.d0, qwk, ldq+1, twk(2,1), 2)
+## copy the off diagonal of qwk into twk(1,2)
+call  dcopy (n-1, qwk(1,2), ldq+1, twk(1,2), 2)
 ## set work := U^T F_2^T y
 call  dcopy (n, z, 1, work, 1)
 
+
+
+## computes r s.t. U T U^T = r^T r
 call  dpbfa (twk, 2, n, 1, info)
 if ( info != 0 )  return
 

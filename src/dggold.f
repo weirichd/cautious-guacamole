@@ -1,7 +1,7 @@
       subroutine dggold (vmu, M, q, ldq, n, z, low, upp, nlaht,
      *score, varht, info, twk, work)
 
-      character*1       vmu
+      character       vmu
       integer           ldq, n, info
       double precision  q(ldq,*), M(ldq,*), z(*), low, upp,
      *nlaht, score, varht, twk(2,*), work(*)

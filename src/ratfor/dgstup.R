@@ -18,8 +18,8 @@ if ( nobs < 1 | nobs > lds | nobs > ldqr | nobs > ldqc ) {
 for (j=1;j<=nq;j=j+1) {
       # set qwk = M
       dcopy(ldqr*ldqc,M,1,qwk,1)
-      # set qwk = nla*qwk = nla*M
-      dscal(ldqr*ldqc,nla,qwk,1) 
+      # set qwk = nla*qwk = nla  x M
+      dscal(ldqr*ldqc,10.d0**nla,qwk,1)
       # qwk = 1*q + qwk
       daxpy(ldqc*ldqr,1,q(1,1,j),1,qwk,1)
       dqrslm (s, lds, nobs, nnull, qraux, qwk(1,1,j), ldqr, 0,_

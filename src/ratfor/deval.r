@@ -3,8 +3,19 @@
 #   deval
 #:::::::::::
 
-subroutine  deval (vmu, q, ldq, n, z, nint, low, upp, nlaht, score, varht,_
-                   info, twk, work)
+      subroutine  deval (vmu, s, lds, nint, qraux, nobs, nnull, tol, jpvt, M,
+     *ldq, nq, q, z, y, low, upp, nlaht, score,
+     *varht,info, work, twk, twk2, qwork)
+
+
+
+
+      character       vmu
+      integer           ldq, n, info, jpvt(*), lds,
+     *nnull, nobs, nq, n, nint
+      double precision  q(ldq,*), M(ldq,*), tol, z(*), y(*), low,
+     *upp, nlaht, score, varht, twk(2,*), twk2(*), work(*),
+     *qwork(ldq,*), qraux(*)
 
 #  Purpose:  To evaluate GCV/GML function based on tridiagonal form and to
 #      search minimum on an interval by equally spaced (in log10 scale) grid
@@ -76,16 +87,22 @@ if ( 1 > n | n > ldq ) {
 #   evaluation
 for (j=1;j<=nint+1;j=j+1) {
     tmp = low + dfloat (j-1) * ( upp - low ) / dfloat (nint)
-    call  dset (n, 10.d0 ** (tmp), twk(2,1), 2)
-    call  daxpy (n, 1.d0, q, ldq+1, twk(2,1), 2)
-    call  dcopy (n-1, q(1,2), ldq+1, twk(1,2), 2)
-    twk(1,1) = 10.d0**tmp
-    call  dtrev (vmu, twk, 2, n, z, score(j), varht, info, work)
-    if ( info != 0 ) {
-        info = -2
-        return
-    }
-    if ( score(j) <= minscr | j == 1 ) {
+
+    call dgstup ( s, M, lds, nobs, nnull, qraux, q, ldq, nobs,
+                  *nq, info, work, qwork, mlo)
+    call  dsytr (qwork(n0+1,n0+1), ldq, n, tol, info, work)
+    if ( info != 0 )  return
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ##   z(lambda) : = U(lambda)^{T} z_{2}
+    ## copy lower triangle of U T U^T into work
+    call  dcopy (n-2, qwork(n0+2,n0+1), ldq+1, work, 1)
+    ## z(n0+2) := U^T F_2^T y(n0+2)
+    call  dqrsl (qwork(n0+2,n0+1), ldq, n-1, n-2,  work, y(n0+2), dum, z(n0+2),dum, dum, dum, 01000, info)
+    call dggold(vmu, M, q(n0+1,n0+1), ldq, n, z(n0+1), low, upp, mlo, tmpl,
+    *varht, info, twk, work)
+
+    ###-----------
+        if ( score(j) <= minscr | j == 1 ) {
         minscr = score(j)
         nlaht = tmp
         varhtwk = varht
@@ -95,6 +112,3 @@ varht = varhtwk
 
 return
 end
-
-#...............................................................................
-
