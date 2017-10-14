@@ -1,6 +1,6 @@
 
 ## Fit Single Smoothing Parameter REGression
-vcsspreg0 <- function(s,q,y,M,method="v",varht=1)
+vcsspreg0 <- function(s,q,y,M, method="v",varht=1)
 {
   ## Check inputs
   if (is.vector(s)) s <- as.matrix(s)
@@ -18,23 +18,21 @@ vcsspreg0 <- function(s,q,y,M,method="v",varht=1)
   if (!length(code)) {
     stop("gss error: unsupported method for smoothing parameter selection")
   }
-  ## Call RKPACK driver DSIDR
-  # (vmu, s, lds, nobs, nnull, y, z, M, ldm, q, ldq, tol, job, limnla,
-  #       nlaht, score, varht, c, d, qraux, jpvt, wk, twk2, qwk, info)
+  # vmu, s, lds, nobs, nnull, y, z, M, q,
+  # *ldq, tol, job, limnla, nlaht, score, varht, c, d, qraux, jpvt,
+  # *wk, twk, twk2, qwk, info
   z <- .Fortran("dsidr0",
                 as.integer(code),
                 swk=as.double(s), as.integer(nobs),
                 as.integer(nobs), as.integer(nnull),
-                as.double(y), as.double(y), 
-                as.double(M), as.integer(nobs),
+                as.double(y), double(nobs), as.double(M),
                 qwk=as.double(q), as.integer(nobs),
-                as.double(0), as.integer(0),
-                double(2), nlambda=double(1),
-                score=double(1), varht=as.double(varht),
+                as.double(0), as.integer(0), double(2),
+                nlambda=double(1), score=double(1), varht=as.double(varht),
                 c=double(nobs), d=double(nnull),
                 qraux=double(nnull), jpvt=integer(nnull),
-                double(3*nobs), double(),
-                as.double(M),
+                double(2*nobs),double(2*nobs), double(2*nobs),
+                as,double(q),
                 info=integer(1),PACKAGE="gss")
   ## Check info for error
   if (info<-z$info) {               

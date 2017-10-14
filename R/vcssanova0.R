@@ -4,7 +4,7 @@
 #' @param formula
 #' @param type List specifying the type of spline for each variable.
 #' @param data list containing the data where the matrix of 2-dimensional regressors are a single element in the list
-#' @param weights the squareroot of the innovation variances
+#' @param weights vector of the N x M-1 innovation variances
 #' @param subset Optional vector specifying a subset of observations to be used in the fitting process.
 #' @param offset Optional offset term with known parameter 1.
 #' @param na.action Function which indicates what should happen when the data contain NAs.
@@ -22,7 +22,7 @@
 #' @export
 #' @examples
 
-vcssanova <- function (formula="y~x",
+vcssanova <- function (formula=as.formula("y~x"),
                        type = NULL, wt, subset=NULL,
                        data, offset=NULL, na.action = na.omit,
                        partial = NULL, method = "v",
@@ -37,6 +37,7 @@ vcssanova <- function (formula="y~x",
 
   data$x <- as.matrix(data$x)
   dimnames(data$x)[1:2] <- NULL
+  mf$formula <- as.formula("y~x")
   mfr <- model.frame(formula=mf$formula,
                      data=list(x=data$x,
                                y=rep(1,dim(data$x)[1])))
@@ -63,7 +64,7 @@ vcssanova <- function (formula="y~x",
     if (class(random) == "formula")
       random <- mkran(random, data)
   }
-  s <- r <- NULL
+  s <- q <- NULL
   nq <- 0
   for (label in term$labels) {
     if (label == "1") {
@@ -139,7 +140,9 @@ vcssanova <- function (formula="y~x",
   M <- t(W) %*% Dinv %*% W
   Minv <- solve(M)
   y <- t(W) %*% Dinv %*% y
-  q <- M %*% q %*% M
+  if(nq==1){
+        q[,,1] <- M %*% as.matrix(q[1:dim(q)[1],1:dim(q)[2],1]) %*% M
+  }
   s <- M %*% s
   if (!is.null(offset)) {
     term$labels <- c(term$labels, "offset")
