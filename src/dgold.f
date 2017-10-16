@@ -57,7 +57,7 @@ C Begin the code
       return
       endif
 
-      call dcopy (n-2, qqwork(n0+2,n0+1), ldq+1, work, 1)
+      call dcopy (n-2, qwork(n0+2,n0+1), ldq+1, work, 1)
       call dqrsl (qwork(n0+2,n0+1), ldq, n-1, n-2, work,
      *y(n0+2), dum, z(n0+2),dum, dum, dum, 01000, info)
       if( info .ne. 0 )then
@@ -131,7 +131,7 @@ C Begin the code
       if( info .ne. 0 )then
       return
       endif
-      
+
       call dggold(vmu, M, qwork(n0+1,n0+1), ldq, n, z(n0+1), low, upp,
      *nlaht, score, varht, info, twk, work)
       return

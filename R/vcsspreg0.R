@@ -18,9 +18,6 @@ vcsspreg0 <- function(s,q,y,M, method="v",varht=1)
   if (!length(code)) {
     stop("gss error: unsupported method for smoothing parameter selection")
   }
-  # vmu, s, lds, nobs, nnull, y, z, M, q,
-  # *ldq, tol, job, limnla, nlaht, score, varht, c, d, qraux, jpvt,
-  # *wk, twk, twk2, qwk, info
   z <- .Fortran("dsidr0",
                 as.integer(code),
                 swk=as.double(s), as.integer(nobs),
@@ -33,7 +30,7 @@ vcsspreg0 <- function(s,q,y,M, method="v",varht=1)
                 qraux=double(nnull), jpvt=integer(nnull),
                 double(2*nobs),double(2*nobs), double(2*nobs),
                 as,double(q),
-                info=integer(1),PACKAGE="gss")
+                info=integer(1))
   ## Check info for error
   if (info<-z$info) {               
     if (info>0)

@@ -19,20 +19,20 @@ C Output from Public domain Ratfor, version 1.0
       n = nobs - nnull
 
       call dgstup ( s, M, lds, nobs, nnull, qraux, q, ldq, nobs,
-     *nq, info, work, qwork, nlaht)
+     *nq, info, work, qwk, nlaht)
 
-      call  dsytr (qwork(n0+1,n0+1), ldq, n, tol, info, work)
+      call  dsytr (qwk(n0+1,n0+1), ldq, n, tol, info, work)
       if( info .ne. 0 )then
       return
       endif
 
       call  dcopy (ncol-2, q(n0+2,n0+1), ldq+1, work, 1)
-      call  dqrsl (qwork(n0+2,n0+1), ldq, ncol-1, ncol-2, work,
+      call  dqrsl (qwk(n0+2,n0+1), ldq, ncol-1, ncol-2, work,
      *y(n0+2),dum, z(n0+2),dum, dum, dum, 01000, info)
 
       call  dset (ncol, 0.d0, twk(2,1), 2)
       call  daxpy (ncol, 1.d0, q, ldq+1, twk(2,1), 2)
-      call  dcopy (ncol-1, qwork(1,2), ldq+1, twk(1,2), 2)
+      call  dcopy (ncol-1, qwk(1,2), ldq+1, twk(1,2), 2)
       twk(1,1) = 10.d0**nlaht
 
       call  dpbfa (twk, 2, n, 1, info)
