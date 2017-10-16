@@ -29,7 +29,7 @@ vcsspreg0 <- function(s,q,y,M, method="v",varht=1)
                 c=double(nobs), d=double(nnull),
                 qraux=double(nnull), jpvt=integer(nnull),
                 double(2*nobs),double(2*nobs), double(2*nobs),
-                as,double(q),
+                as.double(q),
                 info=integer(1))
   ## Check info for error
   if (info<-z$info) {               
