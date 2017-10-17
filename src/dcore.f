@@ -40,6 +40,8 @@
       endif
       low = limnla(1)
       upp = limnla(2)
+      if( low.lt.0 ) low = 0
+      if( upp.lt.0 ) upp = 6
       if( job .le. 0 )then
       call dgold (vmu, s, lds, qraux, nobs, nnull, tol, jpvt, M,
      *ldq, 1, q, z, y, low, upp, nlaht, score(1), varht, info,
