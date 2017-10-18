@@ -17,7 +17,7 @@
       do j=1,nq,1
       call dcopy(ldqr*ldqc,M,1,qwk,1)
       call dscal(ldqr*ldqc,nla,qwk,1)
-      call daxpy(ldqr*ldqc,1,q(1,1,j),1,qwk,1)
+      call daxpy(ldqr*ldqc,1.0d0,q(1,1,j),1,qwk,1)
       call dqrslm(s, lds, nobs, nnull, qraux, qwk(1,1,j), ldqr, 0,
      *info, work)
       end do
